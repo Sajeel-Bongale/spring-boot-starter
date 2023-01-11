@@ -1,4 +1,4 @@
-package com.clairvoyant.employees;
+package com.clairvoyant.employees.handlers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

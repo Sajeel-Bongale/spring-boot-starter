@@ -1,4 +1,4 @@
-package com.clairvoyant.employees;
+package com.clairvoyant.employees.models;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

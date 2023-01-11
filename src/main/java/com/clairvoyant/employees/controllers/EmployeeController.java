@@ -1,5 +1,7 @@
-package com.clairvoyant.employees;
+package com.clairvoyant.employees.controllers;
 
+import com.clairvoyant.employees.models.Employee;
+import com.clairvoyant.employees.respository.EmployeeRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +17,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping(path = "/api/employee")
 @Validated
-public class MainController {
+public class EmployeeController {
 
     @Autowired
     EmployeeRepository employeeRepository;
@@ -39,6 +41,17 @@ public class MainController {
         Optional<Employee> employee = employeeRepository.findById(id);
         if (employee.isPresent()) {
             return new ResponseEntity<>(employee.get(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<String> deleteEmployeeById(@PathVariable Integer id) {
+        Optional<Employee> employee = this.employeeRepository.findById(id);
+        if (employee.isPresent()) {
+            this.employeeRepository.deleteById(id);
+            return new ResponseEntity<>("Deleted employee with id " + id, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
