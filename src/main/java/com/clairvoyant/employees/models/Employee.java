@@ -34,6 +34,7 @@ public class Employee {
     @Size(min = 2, message = "Last Name must have at least 2 characters")
     private String lastName;
 
+//    @Column(updatable = false)
     private LocalDate dateOfBirth;
 
     @Column(unique = true)
@@ -42,6 +43,7 @@ public class Employee {
     @NotNull(message = "Department Cannot be Null")
     private String department;
 
+//    @Column(updatable = false)
     private String designation;
 
 }

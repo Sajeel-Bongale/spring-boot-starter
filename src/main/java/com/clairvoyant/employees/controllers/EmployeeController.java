@@ -52,6 +52,32 @@ public class EmployeeController {
         }
     }
 
+    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> updateEmployee(@Valid @RequestBody Employee employee, @PathVariable Integer id) {
+        Optional<Employee> optionalEmployee = this.employeeRepository.findById(id);
+        if (optionalEmployee.isPresent()) {
+            Employee savedEmployee = optionalEmployee.get();
+            if (!savedEmployee.getEmail().equals(employee.getEmail())) {
+                return new ResponseEntity<>("Email cannot be updated", HttpStatus.BAD_REQUEST);
+            }
+            if (!savedEmployee.getFirstName().equals(employee.getFirstName())) {
+                return new ResponseEntity<>("First Name cannot be updated", HttpStatus.BAD_REQUEST);
+            }
+            if (!savedEmployee.getLastName().equals(employee.getLastName())) {
+                return new ResponseEntity<>("Last Name cannot be updated", HttpStatus.BAD_REQUEST);
+            }
+            if (!savedEmployee.getDateOfBirth().equals(employee.getDateOfBirth())) {
+                return new ResponseEntity<>("Date of Birth cannot be updated", HttpStatus.BAD_REQUEST);
+            }
+            savedEmployee.setDepartment(employee.getDepartment());
+            savedEmployee.setDesignation(employee.getDesignation());
+            this.employeeRepository.save(savedEmployee);
+            return new ResponseEntity<>("Update employee with id " + id, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<String> deleteEmployeeById(@PathVariable Integer id) {
         Optional<Employee> employee = this.employeeRepository.findById(id);
