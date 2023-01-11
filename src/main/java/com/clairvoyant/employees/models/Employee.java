@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -32,7 +34,7 @@ public class Employee {
     @Size(min = 2, message = "Last Name must have at least 2 characters")
     private String lastName;
 
-//    private LocalDate dateOfBirth;
+    private LocalDate dateOfBirth;
 
     @Column(unique = true)
     private String email;

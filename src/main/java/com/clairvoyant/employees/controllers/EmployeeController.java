@@ -2,6 +2,7 @@ package com.clairvoyant.employees.controllers;
 
 import com.clairvoyant.employees.models.Employee;
 import com.clairvoyant.employees.respository.EmployeeRepository;
+import com.clairvoyant.employees.utils.DateUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +28,10 @@ public class EmployeeController {
     public ResponseEntity<String> addEmployee(@Valid @RequestBody Employee employeeRequest) {
         if (this.employeeRepository.findByEmail(employeeRequest.getEmail()) != null) {
             return new ResponseEntity<>("Email already exists in database", HttpStatus.BAD_REQUEST);
+        }
+        if(DateUtil.calculateAge(employeeRequest.getDateOfBirth(), LocalDate.now()) < 21 ||
+                DateUtil.calculateAge(employeeRequest.getDateOfBirth(), LocalDate.now()) > 60) {
+            return new ResponseEntity<>("Employee age should be between 21 and 60", HttpStatus.BAD_REQUEST);
         }
         this.employeeRepository.save(employeeRequest);
         return new ResponseEntity<>("Saved", HttpStatus.OK);
