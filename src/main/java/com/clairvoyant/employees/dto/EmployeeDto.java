@@ -1,6 +1,5 @@
 package com.clairvoyant.employees.dto;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
