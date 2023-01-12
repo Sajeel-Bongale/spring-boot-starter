@@ -1,9 +1,12 @@
 package com.clairvoyant.employees.controllers;
 
-import com.clairvoyant.employees.models.Employee;
+import com.clairvoyant.employees.dto.EmployeeDto;
+import com.clairvoyant.employees.dto.EmployeeUpdateDto;
+import com.clairvoyant.employees.model.Employee;
 import com.clairvoyant.employees.respository.EmployeeRepository;
-import com.clairvoyant.employees.utils.DateUtil;
+import com.clairvoyant.employees.service.EmployeeService;
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,9 +15,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping(path = "/api/employee")
@@ -22,70 +25,50 @@ import java.util.Optional;
 public class EmployeeController {
 
     @Autowired
+    private ModelMapper modelMapper;
+
+    @Autowired
+    EmployeeService employeeService;
+
+    @Autowired
     EmployeeRepository employeeRepository;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> addEmployee(@Valid @RequestBody Employee employeeRequest) {
-        if (this.employeeRepository.findByEmail(employeeRequest.getEmail()) != null) {
-            return new ResponseEntity<>("Email already exists in database", HttpStatus.BAD_REQUEST);
-        }
-        if(DateUtil.calculateAge(employeeRequest.getDateOfBirth(), LocalDate.now()) < 21 ||
-                DateUtil.calculateAge(employeeRequest.getDateOfBirth(), LocalDate.now()) > 60) {
-            return new ResponseEntity<>("Employee age should be between 21 and 60", HttpStatus.BAD_REQUEST);
-        }
-        this.employeeRepository.save(employeeRequest);
-        return new ResponseEntity<>("Saved", HttpStatus.OK);
+    public ResponseEntity<String> addEmployee(@Valid @RequestBody EmployeeDto employeeDto) {
+        Employee employee = this.modelMapper.map(employeeDto, Employee.class);
+        this.employeeService.addEmployee(employee);
+        return new ResponseEntity<>("Saved Employee", HttpStatus.CREATED);
     }
 
     @GetMapping()
-    public ResponseEntity<List<Employee>> getAllEmployees() {
-        return new ResponseEntity<>(this.employeeRepository.findAll(), HttpStatus.OK);
+    public ResponseEntity<List<EmployeeDto>> getAllEmployees() {
+        List<Employee> employees = this.employeeService.getAllEmployees();
+        List<EmployeeDto> employeeDtoList = employees
+                .stream()
+                .map(employee -> this.modelMapper.map(employee, EmployeeDto.class))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(employeeDtoList, HttpStatus.OK);
     }
 
-    @GetMapping(path = "/{id}")
-    public ResponseEntity<Employee> getEmployeeById(@PathVariable Integer id) {
-        Optional<Employee> employee = employeeRepository.findById(id);
-        if (employee.isPresent()) {
-            return new ResponseEntity<>(employee.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @GetMapping(path = "/{email}")
+    public ResponseEntity<EmployeeDto> getEmployeeByEmail(@PathVariable String email) {
+        Employee employee = this.employeeService.getEmployeeByEmail(email);
+        EmployeeDto employeeDto = this.modelMapper.map(employee, EmployeeDto.class);
+        return new ResponseEntity<>(employeeDto, HttpStatus.OK);
     }
 
-    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> updateEmployee(@Valid @RequestBody Employee employee, @PathVariable Integer id) {
-        Optional<Employee> optionalEmployee = this.employeeRepository.findById(id);
-        if (optionalEmployee.isPresent()) {
-            Employee savedEmployee = optionalEmployee.get();
-            if (!savedEmployee.getEmail().equals(employee.getEmail())) {
-                return new ResponseEntity<>("Email cannot be updated", HttpStatus.BAD_REQUEST);
-            }
-            if (!savedEmployee.getFirstName().equals(employee.getFirstName())) {
-                return new ResponseEntity<>("First Name cannot be updated", HttpStatus.BAD_REQUEST);
-            }
-            if (!savedEmployee.getLastName().equals(employee.getLastName())) {
-                return new ResponseEntity<>("Last Name cannot be updated", HttpStatus.BAD_REQUEST);
-            }
-            if (!savedEmployee.getDateOfBirth().equals(employee.getDateOfBirth())) {
-                return new ResponseEntity<>("Date of Birth cannot be updated", HttpStatus.BAD_REQUEST);
-            }
-            savedEmployee.setDepartment(employee.getDepartment());
-            savedEmployee.setDesignation(employee.getDesignation());
-            this.employeeRepository.save(savedEmployee);
-            return new ResponseEntity<>("Update employee with id " + id, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @PutMapping(path = "/{email}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> updateEmployee(@Valid @RequestBody EmployeeUpdateDto employeeUpdateDto,
+                                                 @PathVariable String email) {
+        Employee employee = this.employeeService.getEmployeeByEmail(email);
+        this.modelMapper.map(employeeUpdateDto, employee);
+        this.employeeService.updateEmployee(employee);
+        return new ResponseEntity<>("Updated Employee with email " + email, HttpStatus.OK);
     }
 
-    @DeleteMapping(path = "/{id}")
-    public ResponseEntity<String> deleteEmployeeById(@PathVariable Integer id) {
-        Optional<Employee> employee = this.employeeRepository.findById(id);
-        if (employee.isPresent()) {
-            this.employeeRepository.deleteById(id);
-            return new ResponseEntity<>("Deleted employee with id " + id, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @DeleteMapping(path = "/{email}")
+    public ResponseEntity<String> deleteEmployeeByEmail(@PathVariable String email) {
+        this.employeeService.deleteEmployeeByEmail(email);
+        return new ResponseEntity<>("Deleted employee with email " + email, HttpStatus.NOT_FOUND);
     }
 }

@@ -1,14 +1,10 @@
 package com.clairvoyant.employees.respository;
 
 
-import com.clairvoyant.employees.models.Employee;
+import com.clairvoyant.employees.model.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
-import java.util.List;
-
-public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
+public interface EmployeeRepository extends JpaRepository<Employee, String> {
     public Employee findByEmail(String email);
 
 /*
